@@ -1,9 +1,10 @@
 {
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "node-cron": "^4.2.1",
-    "nodemailer": "^9.0.0"
+    "@google/generative-ai": "^0.x.x",
+    "cors": "^2.8.6",
+    "dotenv": "^16.x.x",
+    "express": "^4.x.x",
+    "node-cron": "^3.x.x",
+    "nodemailer": "^6.x.x"
   }
 }
