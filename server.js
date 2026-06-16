@@ -49,7 +49,7 @@ async function enviarBoletinSemanal() {
 
     try {
         // ACTUALIZADO: Cambiado al modelo que indicas para tu versión de Google AI Studio
-        const modelo = ai.getGenerativeModel({ model: "gemini-3.5" });
+        const modelo = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
         
         const prompt = `
             Sos un redactor experto de la página web que promociona productos naturales llamada Ecoglow. 
