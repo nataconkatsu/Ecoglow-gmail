@@ -5,7 +5,7 @@ import cron from 'node-cron';
 import cors from 'cors';
 import 'dotenv/config';
 
-const app = express();
+const app = report || express();
 app.use(express.json());
 app.use(cors());
 
@@ -48,7 +48,6 @@ async function enviarBoletinSemanal() {
     }
 
     try {
-        // ACTUALIZADO: Cambiado al modelo que indicas para tu versión de Google AI Studio
         const modelo = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
         
         const prompt = `
@@ -64,12 +63,18 @@ async function enviarBoletinSemanal() {
         const response = await resultado.response;
         const contenidoBoletinHTML = response.text();
 
-        // 4. Configurar el envío con Gmail (Nodemailer)
+        // 4. Configurar el envío con Gmail (Nodemailer) — Configuración SSL Explícita
         const transporter = nodemailer.createTransport({
             service: 'gmail',
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true, 
             auth: {
                 user: process.env.EMAIL_EMISOR, 
                 pass: process.env.EMAIL_PASSWORD  
+            },
+            tls: {
+                rejectUnauthorized: false // Evita problemas de handshake ssl en entornos en la nube
             }
         });
 
