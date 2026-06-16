@@ -1,5 +1,5 @@
 import express from 'express';
-import { GoogleGenerativeAI } from '@google/generative-ai'; // ¡Corregido aquí!
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import nodemailer from 'nodemailer';
 import cron from 'node-cron';
 import cors from 'cors';
@@ -10,9 +10,9 @@ app.use(express.json());
 app.use(cors());
 
 // 1. Inicializar la IA de Google usando la clase correcta
-const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY); // ¡Corregido aquí!
+const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// Lista temporal de correos (Se borra si el servidor se reinicia; ideal usar Base de Datos a futuro)
+// Lista temporal de correos (Se borra si el servidor se reinicia)
 let suscriptores = [];
 
 // 2. Ruta para recibir los correos desde el HTML de Ecoglow
@@ -46,5 +46,41 @@ async function enviarBoletinSemanal() {
         `;
 
         const resultado = await modelo.generateContent(prompt);
-        // Esperamos la respuesta del texto correctamente
-        const response = await
+        const response = await resultado.response;
+        const contenidoBoletinHTML = response.text();
+
+        // 4. Configurar el envío con Gmail (Nodemailer)
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_EMISOR, 
+                pass: process.env.EMAIL_PASSWORD  
+            }
+        });
+
+        // Enviar a cada suscriptor
+        for (const correo of suscriptores) {
+            await transporter.sendMail({
+                from: `"Ecoglow — Belleza Consciente" <${process.env.EMAIL_EMISOR}>`, 
+                to: correo,
+                subject: "🌿 Tu dosis semanal de botánica y cosmética limpia",
+                html: contenidoBoletinHTML
+            });
+        }
+        console.log(`¡Boletines enviados con éxito a ${suscriptores.length} usuarios!`);
+
+    } catch (error) {
+        console.error("Error al procesar el boletín:", error);
+    }
+}
+
+// 5. PROGRAMACIÓN AUTOMÁTICA (CRON JOB)
+// Configurado para ejecutarse todos los lunes a las 9:00 AM automáticamente
+cron.schedule('0 9 * * 1', () => {
+    console.log("Iniciando envío automático del boletín...");
+    enviarBoletinSemanal();
+});
+
+// 6. Encendido del servidor
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log(`Servidor Ecoglow corriendo en puerto ${PORT}`));
