@@ -26,7 +26,7 @@ app.post('/api/subscribe', (req, res) => {
     return res.json({ success: true, message: '¡Suscripción exitosa!' });
 });
 
-// 🔥 NUEVA RUTA DE PRUEBA: Fuerza el envío del boletín inmediatamente al entrar desde el navegador
+// 🔥 RUTA DE PRUEBA: Fuerza el envío del boletín inmediatamente al entrar desde el navegador
 app.get('/api/test-boletin', async (req, res) => {
     console.log("Forzando envío de boletín de prueba desde la ruta web...");
     try {
@@ -48,7 +48,8 @@ async function enviarBoletinSemanal() {
     }
 
     try {
-        const modelo = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+        // ACTUALIZADO: Cambiado al modelo que indicas para tu versión de Google AI Studio
+        const modelo = ai.getGenerativeModel({ model: "gemini-3.5" });
         
         const prompt = `
             Sos un redactor experto de la página web que promociona productos naturales llamada Ecoglow. 
@@ -85,12 +86,11 @@ async function enviarBoletinSemanal() {
 
     } catch (error) {
         console.error("Error al procesar el boletín:", error);
-        throw error; // Lanzamos el error para que la ruta de prueba lo capture si algo falla
+        throw error; 
     }
 }
 
 // 5. PROGRAMACIÓN AUTOMÁTICA (CRON JOB)
-// Configurado para ejecutarse todos los lunes a las 9:00 AM automáticamente
 cron.schedule('0 9 * * 1', () => {
     console.log("Iniciando envío automático del boletín...");
     enviarBoletinSemanal();
