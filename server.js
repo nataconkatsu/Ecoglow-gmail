@@ -1,16 +1,17 @@
 import express from 'express';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend'; // ¡Cambiamos Nodemailer por Resend!
 import cron from 'node-cron';
 import cors from 'cors';
 import 'dotenv/config';
 
-const app = express(); // ¡Línea 8 corregida y limpia de errores!
+const app = express();
 app.use(express.json());
 app.use(cors());
 
-// 1. Inicializar la IA de Google usando la clase correcta
+// 1. Inicializar la IA de Google y Resend con sus llaves
 const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY); 
 
 // Lista temporal de correos (Se borra si el servidor se reinicia)
 let suscriptores = [];
@@ -26,17 +27,17 @@ app.post('/api/subscribe', (req, res) => {
     return res.json({ success: true, message: '¡Suscripción exitosa!' });
 });
 
-// 🔥 RUTA DE PRUEBA: Fuerza el envío del boletín inmediatamente al entrar desde el navegador
+// 🔥 RUTA DE PRUEBA: Fuerza el envío inmediato
 app.get('/api/test-boletin', async (req, res) => {
-    console.log("Forzando envío de boletín de prueba desde la ruta web...");
+    console.log("Forzando envío de boletín de prueba mediante Resend...");
     try {
         await enviarBoletinSemanal();
         return res.json({ 
             success: true, 
-            message: `Proceso de envío ejecutado. Si tenías correos anotados (actualmente hay ${suscriptores.length}), revisá sus casillas y los logs de Render.` 
+            message: `¡Proceso ejecutado! Si tenías correos anotados (actualmente hay ${suscriptores.length}), Resend ya procesó el envío.` 
         });
     } catch (error) {
-        return res.status(500).json({ error: "Falló la prueba del boletín", detalles: error.message });
+        return res.status(500).json({ error: "Falló la prueba con Resend", detalles: error.message });
     }
 });
 
@@ -63,31 +64,23 @@ async function enviarBoletinSemanal() {
         const response = await resultado.response;
         const contenidoBoletinHTML = response.text();
 
-        // 4. Configurar el envío con Gmail (Nodemailer) — Configuración SSL Explícita
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            host: 'smtp.gmail.com',
-            port: 465,
-            secure: true, 
-            auth: {
-                user: process.env.EMAIL_EMISOR, 
-                pass: process.env.EMAIL_PASSWORD  
-            },
-            tls: {
-                rejectUnauthorized: false // Evita problemas de handshake SSL en entornos en la nube como Render
-            }
-        });
-
-        // Enviar a cada suscriptor
+        // 4. Enviar los correos usando Resend de forma masiva/individual
+        // Nota: Al usar la cuenta gratuita de Resend sin dominio propio, 
+        // el remitente obligatorio debe ser "onboarding@resend.dev"
         for (const correo of suscriptores) {
-            await transporter.sendMail({
-                from: `"Ecoglow — Belleza Consciente" <${process.env.EMAIL_EMISOR}>`, 
+            const { data, error } = await resend.emails.send({
+                from: 'Ecoglow <onboarding@resend.dev>',
                 to: correo,
-                subject: "🌿 Tu dosis semanal de botánica y cosmética limpia",
-                html: contenidoBoletinHTML
+                subject: '🌿 Tu dosis semanal de botánica y cosmética limpia',
+                html: contenidoBoletinHTML,
             });
+
+            if (error) {
+                console.error(`Error enviando a ${correo}:`, error);
+            } else {
+                console.log(`Mail enviado con éxito a ${correo}. ID: ${data.id}`);
+            }
         }
-        console.log(`¡Boletines enviados con éxito a ${suscriptores.length} usuarios!`);
 
     } catch (error) {
         console.error("Error al procesar el boletín:", error);
