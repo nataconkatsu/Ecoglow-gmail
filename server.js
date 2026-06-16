@@ -26,6 +26,20 @@ app.post('/api/subscribe', (req, res) => {
     return res.json({ success: true, message: '¡Suscripción exitosa!' });
 });
 
+// 🔥 NUEVA RUTA DE PRUEBA: Fuerza el envío del boletín inmediatamente al entrar desde el navegador
+app.get('/api/test-boletin', async (req, res) => {
+    console.log("Forzando envío de boletín de prueba desde la ruta web...");
+    try {
+        await enviarBoletinSemanal();
+        return res.json({ 
+            success: true, 
+            message: `Proceso de envío ejecutado. Si tenías correos anotados (actualmente hay ${suscriptores.length}), revisá sus casillas y los logs de Render.` 
+        });
+    } catch (error) {
+        return res.status(500).json({ error: "Falló la prueba del boletín", detalles: error.message });
+    }
+});
+
 // 3. Función que recolecta info, genera el boletín y lo envía
 async function enviarBoletinSemanal() {
     if (suscriptores.length === 0) {
@@ -71,6 +85,7 @@ async function enviarBoletinSemanal() {
 
     } catch (error) {
         console.error("Error al procesar el boletín:", error);
+        throw error; // Lanzamos el error para que la ruta de prueba lo capture si algo falla
     }
 }
 
