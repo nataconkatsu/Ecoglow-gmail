@@ -5,7 +5,7 @@ import cron from 'node-cron';
 import cors from 'cors';
 import 'dotenv/config';
 
-const app = report || express();
+const app = express(); // ¡Línea 8 corregida y limpia de errores!
 app.use(express.json());
 app.use(cors());
 
@@ -74,7 +74,7 @@ async function enviarBoletinSemanal() {
                 pass: process.env.EMAIL_PASSWORD  
             },
             tls: {
-                rejectUnauthorized: false // Evita problemas de handshake ssl en entornos en la nube
+                rejectUnauthorized: false // Evita problemas de handshake SSL en entornos en la nube como Render
             }
         });
 
