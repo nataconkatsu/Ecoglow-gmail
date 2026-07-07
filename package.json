@@ -1,11 +1,22 @@
 {
+  "name": "mi-proyecto-mongodb",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
   "dependencies": {
-    "@google/generative-ai": "^0.x.x",
+    "@google/generative-ai": "^0.24.1",
     "cors": "^2.8.6",
-    "dotenv": "^16.x.x",
-    "express": "^4.x.x",
-    "node-cron": "^3.x.x",
-    "nodemailer": "^6.x.x",
-    "resend": "^6.12.4"
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongodb": "^7.5.0",
+    "node-cron": "^4.6.0",
+    "resend": "^6.17.1"
   }
 }
